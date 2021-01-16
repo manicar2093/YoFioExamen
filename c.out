@@ -1,0 +1,14 @@
+mode: set
+github.com/manicar2093/YoFioExamen/controllers/controllers.go:17.83,21.2 1 1
+github.com/manicar2093/YoFioExamen/controllers/controllers.go:23.90,29.14 4 1
+github.com/manicar2093/YoFioExamen/controllers/controllers.go:42.2,49.8 3 1
+github.com/manicar2093/YoFioExamen/controllers/controllers.go:29.14,31.50 1 1
+github.com/manicar2093/YoFioExamen/controllers/controllers.go:37.3,38.9 2 1
+github.com/manicar2093/YoFioExamen/controllers/controllers.go:31.50,35.4 2 1
+github.com/manicar2093/YoFioExamen/services/services.go:15.43,17.2 1 0
+github.com/manicar2093/YoFioExamen/services/services.go:34.108,39.2 1 1
+github.com/manicar2093/YoFioExamen/services/services.go:41.83,43.14 2 1
+github.com/manicar2093/YoFioExamen/services/services.go:46.2,51.14 5 1
+github.com/manicar2093/YoFioExamen/services/services.go:54.2,54.57 1 1
+github.com/manicar2093/YoFioExamen/services/services.go:43.14,45.3 1 1
+github.com/manicar2093/YoFioExamen/services/services.go:51.14,53.3 1 1
