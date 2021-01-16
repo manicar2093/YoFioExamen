@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"github.com/manicar2093/YoFioExamen/dao"
-	"github.com/manicar2093/YoFioExamen/entities"
 )
 
 // NoCreditAssigment indica que la inversión no se puede asignar a los creditos establecidos
@@ -16,12 +15,6 @@ func (n NoCreditAssigment) Error() string {
 	return fmt.Sprintf("Se tiene un remanente de $%d al asignar la inversión de $%d", n.Remaining, n.Investment)
 }
 
-// InvestmentFilter es una interfaz que se usará para realizar la lógica completa de filtrado
-type InvestmentFilter interface {
-	// Filter es la acción que se realizará para el calculo de creditos
-	Filter(quantity int32, credit1, credit2, credit3 *entities.CreditDetails) (e error)
-}
-
 type CreditAssigner interface {
 	Assign(investment int32) (int32, int32, int32, error)
 }
@@ -31,7 +24,7 @@ type CreditAssignerImpl struct {
 	creditDetailsDao dao.CreditDetailsDao
 }
 
-func NewCreditAssigner(filter InvestmentFilter, creditDetailsDao dao.CreditDetailsDao) *CreditAssignerImpl {
+func NewCreditAssigner(filter InvestmentFilter, creditDetailsDao dao.CreditDetailsDao) CreditAssigner {
 	return &CreditAssignerImpl{
 		filter: filter,
 		creditDetailsDao: creditDetailsDao,

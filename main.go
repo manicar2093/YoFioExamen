@@ -2,18 +2,32 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/gorilla/mux"
+	"github.com/manicar2093/YoFioExamen/controllers"
+	"github.com/manicar2093/YoFioExamen/dao"
+	"github.com/manicar2093/YoFioExamen/services"
+	"github.com/manicar2093/YoFioExamen/utils"
+	"log"
+	"net/http"
 )
 
-func main() {
-	r := mux.NewRouter()
+var creditAssignerController controllers.CreditController
+var creditAssigner services.CreditAssigner
+var creditFilter services.InvestmentFilter
+var crediteDetailsDao dao.CreditDetailsDao
 
-	http.ListenAndServe(":8000", r)
-	fmt.Println("Main! :D")
+func main() {
+	fmt.Println(utils.GetBanner())
+
+	r := mux.NewRouter()
+	r.HandleFunc("/credit-assignment", creditAssignerController.HandleCreditAssignment).Methods(http.MethodPost)
+	log.Fatal(http.ListenAndServe(":8000", r))
+
 }
 
 func init() {
-	fmt.Println("Init! :D")
+	crediteDetailsDao = dao.NewCreditDetailsDaoImpl()
+	creditFilter = services.NewInvestmentFilter()
+	creditAssigner = services.NewCreditAssigner(creditFilter, crediteDetailsDao)
+	creditAssignerController = controllers.NewCreditController(creditAssigner)
 }

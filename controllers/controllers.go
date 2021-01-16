@@ -10,20 +10,24 @@ import (
 	"github.com/manicar2093/YoFioExamen/services"
 )
 
-type CreditController struct {
+type CreditController interface {
+	HandleCreditAssignment(w http.ResponseWriter, r *http.Request)
+}
+
+type CreditControllerImpl struct {
 	creditService services.CreditAssigner
 }
 
-func NewCreditController(creditService services.CreditAssigner) *CreditController {
-	return &CreditController{
+func NewCreditController(creditService services.CreditAssigner) CreditController {
+	return &CreditControllerImpl{
 		creditService,
 	}
 }
 
-func (c CreditController) HandleCreditAssignment(w http.ResponseWriter, r *http.Request) {
+func (c CreditControllerImpl) HandleCreditAssignment(w http.ResponseWriter, r *http.Request) {
 
 	var body models.CreditAssignRequest
-	json.NewDecoder(r.Body).Decode(&body)
+	json.NewDecoder(r.Body).Decode(&body) // TODO: manejar error
 	loan1, loan2, loan3, e := c.creditService.Assign(body.Investment)
 
 	if e != nil {
