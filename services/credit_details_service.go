@@ -22,15 +22,15 @@ type CreditDetailsService interface {
 	GetStatistics() (models.CreditsAssignmentStatistics, error)
 }
 
-type CreditAssignmentStatisticsServiceImpl struct {
+type CreditDetailsServiceImpl struct {
 	creditDetailsDao dao.CreditDetailsDao
 }
 
 func NewCreditDetailsService(creditDetailsDao dao.CreditDetailsDao) CreditDetailsService {
-	return &CreditAssignmentStatisticsServiceImpl{creditDetailsDao: creditDetailsDao}
+	return &CreditDetailsServiceImpl{creditDetailsDao: creditDetailsDao}
 }
 
-func (c CreditAssignmentStatisticsServiceImpl) GetAllCreditDetails() ([]entities.CreditDetails, error) {
+func (c CreditDetailsServiceImpl) GetAllCreditDetails() ([]entities.CreditDetails, error) {
 	return []entities.CreditDetails{
 		{LoanQuantity: 300, Count: 0},
 		{LoanQuantity: 500, Count: 0},
@@ -38,15 +38,15 @@ func (c CreditAssignmentStatisticsServiceImpl) GetAllCreditDetails() ([]entities
 	}, nil
 }
 
-func (c CreditAssignmentStatisticsServiceImpl) SaveSuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error {
+func (c CreditDetailsServiceImpl) SaveSuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error {
 	return c.creditDetailsDao.Save(createCreditDetailsWStatus(credit1, credit2, credit3, invest, Successful))
 }
 
-func (c CreditAssignmentStatisticsServiceImpl) SaveUnsuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error {
+func (c CreditDetailsServiceImpl) SaveUnsuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error {
 	return c.creditDetailsDao.Save(createCreditDetailsWStatus(credit1, credit2, credit3, invest, Unsuccessful))
 }
 
-func (c CreditAssignmentStatisticsServiceImpl) GetStatistics() (models.CreditsAssignmentStatistics, error) {
+func (c CreditDetailsServiceImpl) GetStatistics() (models.CreditsAssignmentStatistics, error) {
 	calculo := models.CreditsAssignmentStatistics{}
 	success, _ := c.creditDetailsDao.FilterCreditDetailsWithStatus(primitive.D{
 		primitive.E{
