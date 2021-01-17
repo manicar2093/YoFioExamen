@@ -25,7 +25,9 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/credit-assignment", creditAssignerController.HandleCreditAssignment).Methods(http.MethodPost)
 	r.HandleFunc("/statistics", creditAssignerController.HandleGetStatistics).Methods(http.MethodPost)
-	log.Fatal(http.ListenAndServe(":8000", r))
+
+	port := fmt.Sprintf(":%s", utils.GetEnvVar("PORT", "8000"))
+	log.Fatal(http.ListenAndServe(port, r))
 
 }
 
