@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/manicar2093/YoFioExamen/entities"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -31,10 +32,11 @@ func TestHandleCreditAssignment(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, testPath, requestData)
 	w := httptest.NewRecorder()
 
-	creditService := mocks.CreditServiceMock{}
-	creditService.On("Assign", askedAmount).Return(int32(2), int32(2), int32(2), nil)
+	investmentFilterMock := mocks.InvestmentFilter{}
+	creditDetailsServiceMock := mocks.CreditDetailsServiceMock{}
+	investmentFilterMock.On("Assign", askedAmount).Return(int32(2), int32(2), int32(2), nil)
 
-	controller := NewCreditController(&creditService)
+	controller := NewCreditController(&investmentFilterMock, &creditDetailsServiceMock)
 
 	s := mux.NewRouter()
 	s.HandleFunc(testPath, controller.HandleCreditAssignment)
@@ -47,7 +49,7 @@ func TestHandleCreditAssignment(t *testing.T) {
 		t.Error("Error al obtener la respuesta", e)
 	}
 
-	creditService.AssertExpectations(t)
+	investmentFilterMock.AssertExpectations(t)
 	assert.Equal(t, 200, w.Code, "El código de respuesta debió ser 200")
 	assert.Equal(t, "application/json", w.Header().Get("Content-Type"), "No hay cabecero Content-Type requerido")
 	assert.True(t, response.CreditType300 == 2, "No hay información dentro de la respuesta")
@@ -67,15 +69,16 @@ func TestHandleCreditAssignmentJsonDecodeError(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, testPath, requestData)
 	w := httptest.NewRecorder()
 
-	creditService := mocks.CreditServiceMock{}
+	investmentFilterMock := mocks.InvestmentFilter{}
+	creditDetailsServiceMock := mocks.CreditDetailsServiceMock{}
 
-	controller := NewCreditController(&creditService)
+	controller := NewCreditController(&investmentFilterMock, &creditDetailsServiceMock)
 
 	s := mux.NewRouter()
 	s.HandleFunc(testPath, controller.HandleCreditAssignment)
 	s.ServeHTTP(w, r)
 
-	creditService.AssertExpectations(t)
+	investmentFilterMock.AssertExpectations(t)
 	assert.Equal(t, 500, w.Code, "El código de respuesta debió ser 500")
 
 }
@@ -92,16 +95,18 @@ func TestHandleCreditAssignmentWError(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, testPath, requestData)
 	w := httptest.NewRecorder()
 
-	creditService := mocks.CreditServiceMock{}
-	creditService.On("Assign", askedAmount).Return(int32(0), int32(0), int32(0), errors.New("A random error"))
+	investmentFilterMock := mocks.InvestmentFilter{}
+	creditDetailsServiceMock := mocks.CreditDetailsServiceMock{}
 
-	controller := NewCreditController(&creditService)
+	investmentFilterMock.On("Assign", askedAmount).Return(int32(0), int32(0), int32(0), errors.New("A random error"))
+
+	controller := NewCreditController(&investmentFilterMock, &creditDetailsServiceMock)
 
 	s := mux.NewRouter()
 	s.HandleFunc(testPath, controller.HandleCreditAssignment)
 	s.ServeHTTP(w, r)
 
-	creditService.AssertExpectations(t)
+	investmentFilterMock.AssertExpectations(t)
 	assert.Equal(t, 500, w.Code, "El código de respuesta debió ser 500")
 }
 
@@ -117,15 +122,87 @@ func TestHandleCreditAssignmentWNoCreditAssigment(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, testPath, requestData)
 	w := httptest.NewRecorder()
 
-	creditService := mocks.CreditServiceMock{}
-	creditService.On("Assign", askedAmount).Return(int32(0), int32(0), int32(0), services.NoCreditAssigment{Investment: askedAmount, Remaining: askedAmount})
+	investmentFilterMock := mocks.InvestmentFilter{}
+	creditDetailsServiceMock := mocks.CreditDetailsServiceMock{}
 
-	controller := NewCreditController(&creditService)
+	investmentFilterMock.On("Assign", askedAmount).Return(int32(0), int32(0), int32(0), services.NoCreditAssigment{Investment: askedAmount, Remaining: askedAmount})
+
+	controller := NewCreditController(&investmentFilterMock, &creditDetailsServiceMock)
 
 	s := mux.NewRouter()
 	s.HandleFunc(testPath, controller.HandleCreditAssignment)
 	s.ServeHTTP(w, r)
 
-	creditService.AssertExpectations(t)
+	investmentFilterMock.AssertExpectations(t)
 	assert.Equal(t, 400, w.Code, "El código de respuesta debió ser 500")
+}
+
+func TestHandleGetStatistics(t *testing.T) {
+
+	testPath := "/statistics"
+
+	r := httptest.NewRequest(http.MethodPost, testPath, nil)
+	w := httptest.NewRecorder()
+
+	creditAssignmentStatisticsMock := entities.CreditsAssignmentStatistics{
+		DoneAssignments:               10,
+		SuccessfulAssignments:         90,
+		UnsuccessfulAssignements:      88,
+		AverageSuccessfulInvestment:   12,
+		AverageUnsuccessfulInvestment: 11,
+	}
+
+	investmentFilterMock := mocks.InvestmentFilter{}
+	creditDetailsServiceMock := mocks.CreditDetailsServiceMock{}
+
+	creditDetailsServiceMock.On("GetStatistics").Return(
+		creditAssignmentStatisticsMock, nil)
+
+	controller := NewCreditController(&investmentFilterMock, &creditDetailsServiceMock)
+
+	s := mux.NewRouter()
+	s.HandleFunc(testPath, controller.HandleGetStatistics)
+	s.ServeHTTP(w, r)
+
+	var response entities.CreditsAssignmentStatistics
+
+	e := json.NewDecoder(w.Body).Decode(&response)
+	if e != nil {
+		t.Error("Error al obtener la respuesta", e)
+	}
+
+	investmentFilterMock.AssertExpectations(t)
+	creditDetailsServiceMock.AssertExpectations(t)
+	assert.Equal(t, 200, w.Code, "El código de respuesta debió ser 200")
+	assert.Equal(t, creditAssignmentStatisticsMock.DoneAssignments, response.DoneAssignments, "El código de respuesta debió ser 200")
+	assert.Equal(t, creditAssignmentStatisticsMock.SuccessfulAssignments, response.SuccessfulAssignments, "El código de respuesta debió ser 200")
+	assert.Equal(t, creditAssignmentStatisticsMock.UnsuccessfulAssignements, response.UnsuccessfulAssignements, "El código de respuesta debió ser 200")
+	assert.Equal(t, creditAssignmentStatisticsMock.AverageSuccessfulInvestment, response.AverageSuccessfulInvestment, "El código de respuesta debió ser 200")
+	assert.Equal(t, creditAssignmentStatisticsMock.AverageUnsuccessfulInvestment, response.AverageUnsuccessfulInvestment, "El código de respuesta debió ser 200")
+}
+
+func TestHandleGetStatisticsGetStatisticsError(t *testing.T) {
+
+	testPath := "/statistics"
+
+	r := httptest.NewRequest(http.MethodPost, testPath, nil)
+	w := httptest.NewRecorder()
+
+	creditAssignmentStatisticsMock := entities.CreditsAssignmentStatistics{}
+
+	investmentFilterMock := mocks.InvestmentFilter{}
+	creditDetailsServiceMock := mocks.CreditDetailsServiceMock{}
+
+	creditDetailsServiceMock.On("GetStatistics").Return(
+		creditAssignmentStatisticsMock, errors.New("An erros has occured"))
+
+	controller := NewCreditController(&investmentFilterMock, &creditDetailsServiceMock)
+
+	s := mux.NewRouter()
+	s.HandleFunc(testPath, controller.HandleGetStatistics)
+	s.ServeHTTP(w, r)
+
+	investmentFilterMock.AssertExpectations(t)
+	creditDetailsServiceMock.AssertExpectations(t)
+	assert.Equal(t, 500, w.Code, "El código de respuesta debió ser 500")
 }

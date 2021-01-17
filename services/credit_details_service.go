@@ -3,26 +3,33 @@ package services
 import (
 	"github.com/manicar2093/YoFioExamen/dao"
 	"github.com/manicar2093/YoFioExamen/entities"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+var (
+	Successful   = "successful"
+	Unsuccessful = "unsuccessful"
 )
 
 type CreditDetailsService interface {
-	// GetAllCreditDetails obtiene todos los entities.CreditDetails que se deben validar
+	// GetAllCreditDetails obtiene todos los entities.CreditDetails que se deben validar. Existe considerando que puede extraerse esta información de una base de datos.
+	// Solo se debe implementar la lógica necesaria
 	GetAllCreditDetails() ([]entities.CreditDetails, error)
-	SaveSuccessfulRequest(credit1 *entities.CreditDetails,credit2 *entities.CreditDetails,credit3 *entities.CreditDetails, invest int32) error
-	SaveUnsuccessfulRequest(credit1 *entities.CreditDetails,credit2 *entities.CreditDetails,credit3 *entities.CreditDetails, invest int32) error
+	SaveSuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error
+	SaveUnsuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error
+	// GetStatistics realiza la busquda de los CreditDetails que se han registrado y realiza el calculo estadistico
+	GetStatistics() (entities.CreditsAssignmentStatistics, error)
 }
 
-type CreditDetailsServiceImpl struct {
+type CreditAssignmentStatisticsServiceImpl struct {
 	creditDetailsDao dao.CreditDetailsDao
 }
 
 func NewCreditDetailsService(creditDetailsDao dao.CreditDetailsDao) CreditDetailsService {
-	return &CreditDetailsServiceImpl{creditDetailsDao: creditDetailsDao}
+	return &CreditAssignmentStatisticsServiceImpl{creditDetailsDao: creditDetailsDao}
 }
 
-// GetAllCreditDetails existe considerando que puede extraerse esta información de una base de datos.
-// Solo se debe implementar la lógica necesaria
-func (c CreditDetailsServiceImpl) GetAllCreditDetails() ([]entities.CreditDetails, error) {
+func (c CreditAssignmentStatisticsServiceImpl) GetAllCreditDetails() ([]entities.CreditDetails, error) {
 	return []entities.CreditDetails{
 		{LoanQuantity: 300, Count: 0},
 		{LoanQuantity: 500, Count: 0},
@@ -30,12 +37,55 @@ func (c CreditDetailsServiceImpl) GetAllCreditDetails() ([]entities.CreditDetail
 	}, nil
 }
 
-func (c CreditDetailsServiceImpl) SaveSuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error {
-	panic("implement me")
+func (c CreditAssignmentStatisticsServiceImpl) SaveSuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error {
+	return c.creditDetailsDao.Save(createCreditDetailsWStatus(credit1, credit2, credit3, invest, Successful))
 }
 
-func (c CreditDetailsServiceImpl) SaveUnsuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error {
-	panic("implement me")
+func (c CreditAssignmentStatisticsServiceImpl) SaveUnsuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error {
+	return c.creditDetailsDao.Save(createCreditDetailsWStatus(credit1, credit2, credit3, invest, Unsuccessful))
 }
 
+func (c CreditAssignmentStatisticsServiceImpl) GetStatistics() (entities.CreditsAssignmentStatistics, error) {
+	calculo := entities.CreditsAssignmentStatistics{}
+	success, _ := c.creditDetailsDao.FilterCreditDetailsWithStatus(primitive.D{
+		primitive.E{
+			Key:   "status",
+			Value: Successful,
+		},
+	})
+	unsuccess, _ := c.creditDetailsDao.FilterCreditDetailsWithStatus(primitive.D{
+		primitive.E{
+			Key:   "status",
+			Value: Unsuccessful,
+		},
+	})
 
+	calculateAverage(&success, &calculo.AverageSuccessfulInvestment, &calculo.SuccessfulAssignments)
+	calculateAverage(&unsuccess, &calculo.AverageUnsuccessfulInvestment, &calculo.UnsuccessfulAssignements)
+
+	calculo.DoneAssignments = calculo.UnsuccessfulAssignements + calculo.SuccessfulAssignments
+	return calculo, nil
+
+}
+
+func createCreditDetailsWStatus(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32, status string) *entities.CreditDetailsWithStatus {
+	return &entities.CreditDetailsWithStatus{
+		Investment:     invest,
+		CreditsDetails: []*entities.CreditDetails{credit1, credit2, credit3},
+		Status:         status,
+	}
+}
+
+// calculateAverage realiza el calculo del promedio. El averangePointer es donde se debe asignar el dato del promedio; un campo Average***Investment.
+// El assignmentCount es donde se debe asignar el dato de la cantidad; un campo ****Assignments
+func calculateAverage(creditDetails *[]entities.CreditDetailsWithStatus, averagePointer, assignmentCount *int32) {
+	var totalAmount, detailsCount int32 = 0, int32(len(*creditDetails))
+
+	for _, v := range *creditDetails {
+		totalAmount += v.Investment
+	}
+
+	*averagePointer = totalAmount / detailsCount
+	*assignmentCount = detailsCount
+
+}

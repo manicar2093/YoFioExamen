@@ -1,6 +1,9 @@
 package entities
 
-import "fmt"
+import (
+	"fmt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // CreditDetails es el holder donde se lleva la información del Credito que se requiere calcular
 type CreditDetails struct {
@@ -17,17 +20,16 @@ func (c CreditDetails) TotalWithCount() int32 {
 }
 
 type CreditDetailsWithStatus struct {
-	Investment int32
-	Credit1Count int32
-	Credit2Count int32
-	Credit3Count int32
-	Status string
+	ID             primitive.ObjectID `bson:"_id,omitempty"`
+	Investment     int32              `bson:"investment"`
+	CreditsDetails []*CreditDetails   `bson:"credits_details"`
+	Status         string             `bson:"status"`
 }
 
 type CreditsAssignmentStatistics struct {
-	DoneAssignments               int `bson:"done_assignments"`
-	SuccessfulAssignments         int `bson:"successful_assignments"`
-	UnsuccessfulAssignements      int `bson:"unsuccessful_assignments"`
-	AverageSuccessfulInvestment   int `bson:"average_successful_investment"`
-	AverageUnsuccessfulInvestment int `bson:"average_unsuccessful_investment"`
+	DoneAssignments               int32 `json:"done_assignments"`
+	SuccessfulAssignments         int32 `json:"successful_assignments"`
+	UnsuccessfulAssignements      int32 `json:"unsuccessful_assignments"`
+	AverageSuccessfulInvestment   int32 `json:"average_successful_investment"`
+	AverageUnsuccessfulInvestment int32 `json:"average_unsuccessful_investment"`
 }

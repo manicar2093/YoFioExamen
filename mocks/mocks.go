@@ -6,11 +6,11 @@ import (
 )
 
 // Services Mocks
-type CreditServiceMock struct {
+type InvestmentFilter struct {
 	mock.Mock
 }
 
-func (c CreditServiceMock) Assign(investment int32) (int32, int32, int32, error) {
+func (c InvestmentFilter) Assign(investment int32) (int32, int32, int32, error) {
 	args := c.Called(investment)
 	return args.Get(0).(int32), args.Get(1).(int32), args.Get(2).(int32), args.Error(3)
 
@@ -44,6 +44,10 @@ func (c CreditDetailsServiceMock) SaveUnsuccessfulRequest(credit1 *entities.Cred
 	return args.Error(0)
 }
 
+func (c CreditDetailsServiceMock) GetStatistics() (entities.CreditsAssignmentStatistics, error) {
+	args := c.Called()
+	return args.Get(0).(entities.CreditsAssignmentStatistics), args.Error(1)
+}
 
 // DAO Mocks
 
@@ -51,12 +55,12 @@ type CreditDetailsDaoMock struct {
 	mock.Mock
 }
 
-func (c CreditDetailsDaoMock) FilterCreditDetails(filter interface{}) ([]entities.CreditDetails, error) {
+func (c CreditDetailsDaoMock) FilterCreditDetailsWithStatus(filter interface{}) ([]entities.CreditDetailsWithStatus, error) {
 	args := c.Called(filter)
-	return args.Get(0).([]entities.CreditDetails), args.Error(1)
+	return args.Get(0).([]entities.CreditDetailsWithStatus), args.Error(1)
 }
 
-func (c CreditDetailsDaoMock) FindStatistics() (entities.CreditsAssignmentStatistics, error) {
-	args := c.Called()
-	return args.Get(0).(entities.CreditsAssignmentStatistics), args.Error(1)
+func (c CreditDetailsDaoMock) Save(data *entities.CreditDetailsWithStatus) error {
+	args := c.Called(data)
+	return args.Error(0)
 }

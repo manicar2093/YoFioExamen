@@ -24,10 +24,10 @@ type CreditAssignerImpl struct {
 	creditDetailsService CreditDetailsService
 }
 
-func NewCreditAssigner(filter InvestmentFilter, creditDetailsService CreditDetailsService) CreditAssigner {
+func NewCreditAssigner(filter InvestmentFilter, creditAssignmentStatisticsService CreditDetailsService) CreditAssigner {
 	return &CreditAssignerImpl{
 		filter:               filter,
-		creditDetailsService: creditDetailsService,
+		creditDetailsService: creditAssignmentStatisticsService,
 	}
 }
 
@@ -43,15 +43,16 @@ func (c CreditAssignerImpl) Assign(investment int32) (int32, int32, int32, error
 	e = c.filter.Filter(investment, credit1, credit2, credit3)
 	if e != nil {
 
-		if _, ok := e.(NoCreditAssigment); ok {
+		if noCreditAssigmentError, ok := e.(NoCreditAssigment); ok {
 			e = c.creditDetailsService.SaveUnsuccessfulRequest(credit1, credit2, credit3, investment)
 			if e != nil {
 				utils.LogError.Printf("Sucedió un error al guardar los datos del calculo de la inversion de $%d.00 - Procesamiento NO EXITOSO. No se envió la información.", investment)
 				return 0, 0, 0, e
 			}
+			return 0, 0, 0,noCreditAssigmentError
 		}
 
-		return credit1.Count, credit2.Count, credit3.Count, e
+		return 0, 0, 0, e
 	}
 
 	e = c.creditDetailsService.SaveSuccessfulRequest(credit1, credit2, credit3, investment)

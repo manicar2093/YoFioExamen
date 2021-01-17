@@ -13,15 +13,18 @@ import (
 
 type CreditController interface {
 	HandleCreditAssignment(w http.ResponseWriter, r *http.Request)
+	HandleGetStatistics(w http.ResponseWriter, r *http.Request)
 }
 
 type CreditControllerImpl struct {
-	creditService services.CreditAssigner
+	creditAssigner       services.CreditAssigner
+	creditDetailsService services.CreditDetailsService
 }
 
-func NewCreditController(creditService services.CreditAssigner) CreditController {
+func NewCreditController(creditAssigner services.CreditAssigner, creditDetailsService services.CreditDetailsService) CreditController {
 	return &CreditControllerImpl{
-		creditService,
+		creditAssigner,
+		creditDetailsService,
 	}
 }
 
@@ -34,7 +37,7 @@ func (c CreditControllerImpl) HandleCreditAssignment(w http.ResponseWriter, r *h
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	loan1, loan2, loan3, e := c.creditService.Assign(body.Investment)
+	loan1, loan2, loan3, e := c.creditAssigner.Assign(body.Investment)
 
 	if e != nil {
 
@@ -57,5 +60,17 @@ func (c CreditControllerImpl) HandleCreditAssignment(w http.ResponseWriter, r *h
 
 	utils.JSON(w, http.StatusOK, &response)
 	return
+
+}
+
+func (c CreditControllerImpl) HandleGetStatistics(w http.ResponseWriter, r *http.Request) {
+
+	data, e := c.creditDetailsService.GetStatistics()
+	if e != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	utils.JSON(w, http.StatusOK, data)
 
 }

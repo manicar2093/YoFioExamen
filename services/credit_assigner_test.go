@@ -75,8 +75,8 @@ func TestAssignCreditDetailsDaoError(t *testing.T) {
 
 }
 
-// TestAssignFilterError valida el manejo de error cuando hay un error en Filter
-func TestAssignFilterError(t *testing.T) {
+// TestAssignFilterErrorNoCreditAssigment valida el manejo de error NoCreditAssigment cuando hay un error en Filter
+func TestAssignFilterErrorNoCreditAssigment(t *testing.T) {
 	// Test data
 	invest := int32(17800)
 	credit300 := entities.CreditDetails{LoanQuantity: 300, Count: 5}
@@ -112,8 +112,46 @@ func TestAssignFilterError(t *testing.T) {
 	filterMock.AssertExpectations(t)
 	creditDetailsServiceMock.AssertExpectations(t)
 
-	assert.NotNil(t, e, "No debió regresar error")
+	assert.NotNil(t, e, "Debió regresar error")
 	assert.True(t, ok, "El error no es del tipo necesario")
+
+}
+
+// TestAssignFilterError valida el manejo de error no identificado cuando hay un error en Filter
+func TestAssignFilterError(t *testing.T) {
+	// Test data
+	invest := int32(17800)
+	credit300 := entities.CreditDetails{LoanQuantity: 300, Count: 5}
+	credit500 := entities.CreditDetails{LoanQuantity: 500, Count: 5}
+	credit700 := entities.CreditDetails{LoanQuantity: 700, Count: 5}
+
+	// Test Mocks
+	creditDetailsServiceMock := mocks.CreditDetailsServiceMock{}
+	creditDetailsServiceMock.On("GetAllCreditDetails").
+		Return([]entities.CreditDetails{
+			credit300,
+			credit500,
+			credit700,
+		}, nil)
+
+	filterMock := mocks.InvestmentFilterMock{}
+	filterMock.On("Filter", invest,
+		&credit300,
+		&credit500,
+		&credit700).Return(errors.New("Ann error has occured"))
+
+	// Running Test
+	service := NewCreditAssigner(&filterMock, &creditDetailsServiceMock)
+	c300, c500, c700, e := service.Assign(invest)
+
+	// Test Validations
+	filterMock.AssertExpectations(t)
+	creditDetailsServiceMock.AssertExpectations(t)
+
+	assert.NotNil(t, e, "Debió regresar error")
+	assert.Equal(t, int32(0), c300, "Mal conteo de los creditos de 300")
+	assert.Equal(t, int32(0), c500, "Mal conteo de los creditos de 500")
+	assert.Equal(t, int32(0), c700, "Mal conteo de los creditos de 700")
 
 }
 
@@ -151,7 +189,7 @@ func TestAssignSaveSuccessfulRequestError(t *testing.T) {
 	// Test Validations
 	filterMock.AssertExpectations(t)
 	creditDetailsServiceMock.AssertExpectations(t)
-	assert.NotNil(t, e, "No debió regresar error")
+	assert.NotNil(t, e, "Debió regresar error")
 	assert.Equal(t, int32(0), c300, "Mal conteo de los creditos de 300")
 	assert.Equal(t, int32(0), c500, "Mal conteo de los creditos de 500")
 	assert.Equal(t, int32(0), c700, "Mal conteo de los creditos de 700")
@@ -196,4 +234,16 @@ func TestAssignSaveUnsuccessfulRequestError(t *testing.T) {
 
 	assert.NotNil(t, e, "No debió regresar error")
 
+}
+
+func TestNoCreditAssigment(t *testing.T) {
+	expected := "Se tiene un remanente de $200 al asignar la inversión de $40000"
+	e := NoCreditAssigment{
+		Investment: 40000,
+		Remaining:  200,
+	}
+
+	got := e.Error()
+
+	assert.Equal(t, expected, got, "El mensaje de error no es correcto para el tipo NoCreditAssigment")
 }

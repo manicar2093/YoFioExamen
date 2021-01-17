@@ -1,30 +1,49 @@
 package dao
 
 import (
+	"context"
 	"github.com/manicar2093/YoFioExamen/entities"
+	"github.com/manicar2093/YoFioExamen/utils"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type CreditDetailsDao interface {
-	FilterCreditDetails(filter interface{}) ([]entities.CreditDetails, error)
-	FindStatistics() (entities.CreditsAssignmentStatistics, error)
+	Save(data *entities.CreditDetailsWithStatus) error
+	FilterCreditDetailsWithStatus(filter interface{}) ([]entities.CreditDetailsWithStatus, error)
 }
 
 type CreditDetailsDaoImpl struct {
-	collections mongo.Collection
+	collection *mongo.Collection
 }
 
-// NewCreditDetailsDaoImpl crea una nueva instancia de CreditDetailsDaoImpl
-/*func NewCreditDetailsDaoImpl(collection mongo.Collection) CreditDetailsDao {
-	return &CreditDetailsDaoImpl{collections: collection}
+func NewCreditDetailsDao(collection *mongo.Collection) CreditDetailsDao {
+	return &CreditDetailsDaoImpl{collection: collection}
 }
 
-func (c CreditDetailsDaoImpl) FilterCreditDetails(filter interface{}) ([]entities.CreditDetails, error) {
-	return []entities.CreditDetails{
-		{LoanQuantity: 300, Count: 0},
-		{LoanQuantity: 500, Count: 0},
-		{LoanQuantity: 700, Count: 0},
-	}, nil
-
+func (c CreditDetailsDaoImpl) Save(data *entities.CreditDetailsWithStatus) error {
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancel()
+	_, e := c.collection.InsertOne(ctx, data)
+	if e != nil {
+		return e
+	}
+	return nil
 }
-*/
+
+func (c CreditDetailsDaoImpl) FilterCreditDetailsWithStatus(filter interface{}) ([]entities.CreditDetailsWithStatus, error) {
+	ctx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
+	defer cancel()
+	var response []entities.CreditDetailsWithStatus
+	cursor, e := c.collection.Find(ctx, filter)
+	if e != nil {
+		utils.LogError.Printf("Error al realizar el filtro de CreditDetails. \n\tDetalles: %v", e)
+		return []entities.CreditDetailsWithStatus{}, e
+	}
+	if e := cursor.All(ctx, &response); e != nil {
+		utils.LogError.Printf("Error extraer datos del cursor. \n\tDetalles: %v", e)
+		return []entities.CreditDetailsWithStatus{}, e
+	}
+	return response, nil
+}
+
