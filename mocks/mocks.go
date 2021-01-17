@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"github.com/manicar2093/YoFioExamen/entities"
+	"github.com/manicar2093/YoFioExamen/models"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -44,9 +45,9 @@ func (c CreditDetailsServiceMock) SaveUnsuccessfulRequest(credit1 *entities.Cred
 	return args.Error(0)
 }
 
-func (c CreditDetailsServiceMock) GetStatistics() (entities.CreditsAssignmentStatistics, error) {
+func (c CreditDetailsServiceMock) GetStatistics() (models.CreditsAssignmentStatistics, error) {
 	args := c.Called()
-	return args.Get(0).(entities.CreditsAssignmentStatistics), args.Error(1)
+	return args.Get(0).(models.CreditsAssignmentStatistics), args.Error(1)
 }
 
 // DAO Mocks

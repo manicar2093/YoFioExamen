@@ -3,6 +3,7 @@ package services
 import (
 	"github.com/manicar2093/YoFioExamen/dao"
 	"github.com/manicar2093/YoFioExamen/entities"
+	"github.com/manicar2093/YoFioExamen/models"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -18,7 +19,7 @@ type CreditDetailsService interface {
 	SaveSuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error
 	SaveUnsuccessfulRequest(credit1 *entities.CreditDetails, credit2 *entities.CreditDetails, credit3 *entities.CreditDetails, invest int32) error
 	// GetStatistics realiza la busquda de los CreditDetails que se han registrado y realiza el calculo estadistico
-	GetStatistics() (entities.CreditsAssignmentStatistics, error)
+	GetStatistics() (models.CreditsAssignmentStatistics, error)
 }
 
 type CreditAssignmentStatisticsServiceImpl struct {
@@ -45,8 +46,8 @@ func (c CreditAssignmentStatisticsServiceImpl) SaveUnsuccessfulRequest(credit1 *
 	return c.creditDetailsDao.Save(createCreditDetailsWStatus(credit1, credit2, credit3, invest, Unsuccessful))
 }
 
-func (c CreditAssignmentStatisticsServiceImpl) GetStatistics() (entities.CreditsAssignmentStatistics, error) {
-	calculo := entities.CreditsAssignmentStatistics{}
+func (c CreditAssignmentStatisticsServiceImpl) GetStatistics() (models.CreditsAssignmentStatistics, error) {
+	calculo := models.CreditsAssignmentStatistics{}
 	success, _ := c.creditDetailsDao.FilterCreditDetailsWithStatus(primitive.D{
 		primitive.E{
 			Key:   "status",

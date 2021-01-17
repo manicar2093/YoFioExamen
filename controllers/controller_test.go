@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/manicar2093/YoFioExamen/entities"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -144,7 +143,7 @@ func TestHandleGetStatistics(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, testPath, nil)
 	w := httptest.NewRecorder()
 
-	creditAssignmentStatisticsMock := entities.CreditsAssignmentStatistics{
+	creditAssignmentStatisticsMock := models.CreditsAssignmentStatistics{
 		DoneAssignments:               10,
 		SuccessfulAssignments:         90,
 		UnsuccessfulAssignements:      88,
@@ -164,7 +163,7 @@ func TestHandleGetStatistics(t *testing.T) {
 	s.HandleFunc(testPath, controller.HandleGetStatistics)
 	s.ServeHTTP(w, r)
 
-	var response entities.CreditsAssignmentStatistics
+	var response models.CreditsAssignmentStatistics
 
 	e := json.NewDecoder(w.Body).Decode(&response)
 	if e != nil {
@@ -188,7 +187,7 @@ func TestHandleGetStatisticsGetStatisticsError(t *testing.T) {
 	r := httptest.NewRequest(http.MethodPost, testPath, nil)
 	w := httptest.NewRecorder()
 
-	creditAssignmentStatisticsMock := entities.CreditsAssignmentStatistics{}
+	creditAssignmentStatisticsMock := models.CreditsAssignmentStatistics{}
 
 	investmentFilterMock := mocks.InvestmentFilter{}
 	creditDetailsServiceMock := mocks.CreditDetailsServiceMock{}

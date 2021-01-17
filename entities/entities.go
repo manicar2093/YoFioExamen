@@ -25,11 +25,3 @@ type CreditDetailsWithStatus struct {
 	CreditsDetails []*CreditDetails   `bson:"credits_details"`
 	Status         string             `bson:"status"`
 }
-
-type CreditsAssignmentStatistics struct {
-	DoneAssignments               int32 `json:"done_assignments"`
-	SuccessfulAssignments         int32 `json:"successful_assignments"`
-	UnsuccessfulAssignements      int32 `json:"unsuccessful_assignments"`
-	AverageSuccessfulInvestment   int32 `json:"average_successful_investment"`
-	AverageUnsuccessfulInvestment int32 `json:"average_unsuccessful_investment"`
-}

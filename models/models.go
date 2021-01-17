@@ -9,3 +9,11 @@ type CreditAssignResponse struct {
 type CreditAssignRequest struct {
 	Investment int32 `json:"investment"`
 }
+
+type CreditsAssignmentStatistics struct {
+	DoneAssignments               int32 `json:"done_assignments"`
+	SuccessfulAssignments         int32 `json:"successful_assignments"`
+	UnsuccessfulAssignements      int32 `json:"unsuccessful_assignments"`
+	AverageSuccessfulInvestment   int32 `json:"average_successful_investment"`
+	AverageUnsuccessfulInvestment int32 `json:"average_unsuccessful_investment"`
+}
