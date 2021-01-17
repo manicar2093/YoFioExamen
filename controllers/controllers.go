@@ -43,11 +43,11 @@ func (c CreditControllerImpl) HandleCreditAssignment(w http.ResponseWriter, r *h
 
 		if _, ok := e.(services.NoCreditAssigment); ok {
 			utils.LogError.Println(fmt.Sprintf("No se realizó asignación de creditos:\n\tDetalles: %v", e))
-			utils.JSON(w, http.StatusBadRequest, nil)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		utils.LogError.Println(fmt.Sprintf("Error inesperado al asignar creditos:\n\tDetalles: %v", e))
-		utils.JSON(w, http.StatusInternalServerError, nil)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 
 	}
