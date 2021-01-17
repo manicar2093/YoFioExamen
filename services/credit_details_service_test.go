@@ -171,3 +171,44 @@ func TestGetStatistics(t *testing.T) {
 	assert.Equal(t, int32(30000), data.AverageSuccessfulInvestment, "No debe traer contadore AverageSuccessfulInvestment")
 	assert.Equal(t, int32(15000), data.AverageUnsuccessfulInvestment, "No debe traer contadore AverageUnsuccessfulInvestment")
 }
+
+// TestGetStatisticsAvoidDivideByZero valida el manejo cuando no hay datos de successful y evitar la división entre 0
+func TestGetStatisticsAvoidDivideByZero(t *testing.T) {
+
+	creditsSuccess := []entities.CreditDetailsWithStatus{
+
+	}
+	creditsUnsuccessful := []entities.CreditDetailsWithStatus{
+		{
+			Investment:     15000,
+			CreditsDetails: nil,
+			Status:         "unsuccessful",
+		},
+	}
+
+	creditDetailsDaoMock := mocks.CreditDetailsDaoMock{}
+	creditDetailsDaoMock.On("FilterCreditDetailsWithStatus", bson.D{
+		primitive.E{
+			Key:   "status",
+			Value: "successful",
+		},
+	}).Return(creditsSuccess, nil)
+
+	creditDetailsDaoMock.On("FilterCreditDetailsWithStatus", bson.D{
+		primitive.E{
+			Key:   "status",
+			Value: "unsuccessful",
+		},
+	}).Return(creditsUnsuccessful, nil)
+
+	service := NewCreditDetailsService(&creditDetailsDaoMock)
+	data, e := service.GetStatistics()
+
+	creditDetailsDaoMock.AssertExpectations(t)
+	assert.Nil(t, e, "No debió regresar error")
+	assert.Equal(t, int32(1), data.DoneAssignments, "No debe traer contadores DoneAssignments")
+	assert.Equal(t, int32(0), data.SuccessfulAssignments, "No debe traer contadores SuccessfulAssignments")
+	assert.Equal(t, int32(1), data.UnsuccessfulAssignements, "No debe traer contadores UnsuccessfulAssignements")
+	assert.Equal(t, int32(0), data.AverageSuccessfulInvestment, "No debe traer contadores AverageSuccessfulInvestment")
+	assert.Equal(t, int32(15000), data.AverageUnsuccessfulInvestment, "No debe traer contadores AverageUnsuccessfulInvestment")
+}

@@ -85,6 +85,12 @@ func calculateAverage(creditDetails *[]entities.CreditDetailsWithStatus, average
 		totalAmount += v.Investment
 	}
 
+	if totalAmount == 0 {
+		*averagePointer = 0
+		*assignmentCount = detailsCount
+		return
+	}
+
 	*averagePointer = totalAmount / detailsCount
 	*assignmentCount = detailsCount
 
