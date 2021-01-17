@@ -56,6 +56,30 @@ func TestHandleCreditAssignment(t *testing.T) {
 
 }
 
+// TestHandleCreditAssignmentJsonDecodeError valida se mande un error 500 cuando el tipo de dato recibido
+func TestHandleCreditAssignmentJsonDecodeError(t *testing.T) {
+
+	testPath := "/credit-assignment"
+	askedAmount := 3000
+	x := fmt.Sprintf(`{"investment": "%d"}`, askedAmount)
+	requestData := strings.NewReader(x)
+
+	r := httptest.NewRequest(http.MethodPost, testPath, requestData)
+	w := httptest.NewRecorder()
+
+	creditService := mocks.CreditServiceMock{}
+
+	controller := NewCreditController(&creditService)
+
+	s := mux.NewRouter()
+	s.HandleFunc(testPath, controller.HandleCreditAssignment)
+	s.ServeHTTP(w, r)
+
+	creditService.AssertExpectations(t)
+	assert.Equal(t, 500, w.Code, "El código de respuesta debió ser 500")
+
+}
+
 // TestHandleCreditAssignmentWError valida el comportamiento cuando hay un error inesperado en
 // el servicio
 func TestHandleCreditAssignmentWError(t *testing.T) {
@@ -94,7 +118,7 @@ func TestHandleCreditAssignmentWNoCreditAssigment(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	creditService := mocks.CreditServiceMock{}
-	creditService.On("Assign", askedAmount).Return(int32(0), int32(0), int32(0), services.NoCreditAssigment{Investment: askedAmount, Remaining: 200})
+	creditService.On("Assign", askedAmount).Return(int32(0), int32(0), int32(0), services.NoCreditAssigment{Investment: askedAmount, Remaining: askedAmount})
 
 	controller := NewCreditController(&creditService)
 

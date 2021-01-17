@@ -12,7 +12,7 @@ type InvestmentFilter interface {
 	Filter(quantity int32, credit1, credit2, credit3 *entities.CreditDetails) (e error)
 }
 
-type InvestmentFilterImpl struct {}
+type InvestmentFilterImpl struct{}
 
 func NewInvestmentFilter() InvestmentFilter {
 	return &InvestmentFilterImpl{}
@@ -26,13 +26,12 @@ func (i InvestmentFilterImpl) Filter(quantity int32, credit1, credit2, credit3 *
 	creditsDetails = append(creditsDetails, credit2)
 	creditsDetails = append(creditsDetails, credit3)
 
-
 	var loopCounter = func(amount int32) {
 		for {
 			if e = isLessThanZero(amount); isZero(amount) || e != nil {
 				break
 			}
-			if can, divisor := isDivisible(amount,avoid, creditsDetails...); can {
+			if can, divisor := isDivisible(amount, avoid, creditsDetails...); can {
 				amount = amount - divisor.LoanQuantity
 				avoid = divisor.LoanQuantity
 				divisor.Count += exponente
@@ -42,14 +41,14 @@ func (i InvestmentFilterImpl) Filter(quantity int32, credit1, credit2, credit3 *
 		}
 	}
 
-	if can, _ := isDivisible(quantity,0, creditsDetails...); can {
+	if can, _ := isDivisible(quantity, 0, creditsDetails...); can {
 		loopCounter(quantity)
 		return e
 	}
 
 	q1, q2 := getThousandsAndRemaining(quantity)
 
-	can, _ := isDivisible(q2,0, creditsDetails...)
+	can, _ := isDivisible(q2, 0, creditsDetails...)
 
 	if !can {
 		return NoCreditAssigment{Investment: quantity, Remaining: q2}
@@ -66,7 +65,7 @@ func (i InvestmentFilterImpl) Filter(quantity int32, credit1, credit2, credit3 *
 // en los creditsDetails
 func isDivisible(quantity int32, avoid int32, creditsDetails ...*entities.CreditDetails) (bool, *entities.CreditDetails) {
 	for _, v := range creditsDetails {
-		if quantity%v.LoanQuantity == 0 && v.LoanQuantity != avoid{
+		if quantity%v.LoanQuantity == 0 && v.LoanQuantity != avoid {
 			return true, v
 		}
 	}
@@ -96,4 +95,3 @@ func isLessThanZero(q int32) error {
 func isZero(q int32) bool {
 	return q == 0
 }
-

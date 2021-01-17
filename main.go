@@ -26,8 +26,8 @@ func main() {
 }
 
 func init() {
-	crediteDetailsDao = dao.NewCreditDetailsDaoImpl()
-	creditFilter = services.NewInvestmentFilter()
-	creditAssigner = services.NewCreditAssigner(creditFilter, crediteDetailsDao)
-	creditAssignerController = controllers.NewCreditController(creditAssigner)
+	//crediteDetailsDao = dao.NewCreditDetailsDaoImpl()
+	//creditFilter = services.NewInvestmentFilter()
+	//creditAssigner = services.NewCreditAssigner(creditFilter, crediteDetailsDao)
+	//creditAssignerController = controllers.NewCreditController(creditAssigner)
 }

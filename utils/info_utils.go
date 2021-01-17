@@ -1,10 +1,9 @@
 package utils
 
 import (
-"io/ioutil"
-"log"
-"os"
-
+	"io/ioutil"
+	"log"
+	"os"
 )
 
 func GetBanner() string {

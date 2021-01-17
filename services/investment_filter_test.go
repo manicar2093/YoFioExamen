@@ -86,21 +86,20 @@ func TestInvestmentFilterNoAssignable(t *testing.T) {
 	assert.True(t, ok, "El error no es del tipo requerido")
 	assert.Equal(t, invest, err.Investment, "El error no es del tipo requerido")
 
-
 }
 
 // TestIsLessThanZero valida el correcto funcionamiento de la función
 func TestIsLessThanZero(t *testing.T) {
 
 	dt := []struct {
-		Data int32
+		Data  int32
 		Error bool
 	}{
-		{78,false},
-		{-1,true},
+		{78, false},
+		{-1, true},
 	}
 
-	for _,v := range dt {
+	for _, v := range dt {
 		e := isLessThanZero(v.Data)
 		if v.Error {
 			assert.NotNil(t, e, fmt.Sprintf("Debió regresar error con el dato %d", v.Data))
